@@ -36,6 +36,7 @@ export interface IBuyer {
 
 export interface IProductList {
   items: IProduct[];
+  total: number;
 }
 
 export interface IOrder extends IBuyer {

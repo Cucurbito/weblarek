@@ -1,11 +1,11 @@
 import { IProduct } from "../../types";
 
 export class Cart {
-  productCart: IProduct[] | null = null;
+  productCart: IProduct[] = [];
 
   constructor() {}
 
-  getProductCart(): IProduct[] | null {
+  getProductCart(): IProduct[] {
     return this.productCart;
   }
 
@@ -26,7 +26,7 @@ export class Cart {
   }
 
   clearCart(): void {
-    this.productCart = null;
+    this.productCart = [];
   }
 
   getTotalPrice(): number {

@@ -1,10 +1,10 @@
 import { IBuyer, TPayment, TCheckError } from "../../types/index.ts";
 
 export class Buyer {
-  payment: TPayment | null = null;
-  address: string = "";
-  email: string = "";
-  phone: string = "";
+  private payment: TPayment | null = null;
+  private address: string = "";
+  private email: string = "";
+  private phone: string = "";
 
   constructor() {}
 
@@ -30,16 +30,16 @@ export class Buyer {
     email?: string;
     phone?: string;
   }): void {
-    if (dataBuyer.payment) {
+    if (dataBuyer.payment !== undefined) {
       this.payment = dataBuyer.payment;
     }
-    if (dataBuyer.address) {
+    if (dataBuyer.address !== undefined) {
       this.address = dataBuyer.address;
     }
-    if (dataBuyer.email) {
+    if (dataBuyer.email !== undefined) {
       this.email = dataBuyer.email;
     }
-    if (dataBuyer.phone) {
+    if (dataBuyer.phone !== undefined) {
       this.phone = dataBuyer.phone;
     }
   }
