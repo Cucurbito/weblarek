@@ -1,12 +1,13 @@
 import { IBuyer, TPayment, TCheckError } from "../../types/index.ts";
+import { IEvents } from "../base/Events.ts";
 
 export class Buyer {
-  private payment: TPayment | null = null;
-  private address: string = "";
-  private email: string = "";
-  private phone: string = "";
+  protected payment: TPayment | null = null;
+  protected address: string = "";
+  protected email: string = "";
+  protected phone: string = "";
 
-  constructor() {}
+  constructor(protected events: IEvents) {}
 
   getDataBuyer(): IBuyer {
     return {
@@ -22,6 +23,7 @@ export class Buyer {
     this.address = "";
     this.email = "";
     this.phone = "";
+    this.events.emit('buyer:changed', this.getDataBuyer());
   }
 
   setDataBuyer(dataBuyer: {
@@ -42,6 +44,10 @@ export class Buyer {
     if (dataBuyer.phone !== undefined) {
       this.phone = dataBuyer.phone;
     }
+    this.events.emit('buyer:changed', this.getDataBuyer());
+    
+    const errors = this.checkDataBuyer(); 
+    this.events.emit('formErrors:changed', errors);
   }
 
   checkDataBuyer(): TCheckError {
