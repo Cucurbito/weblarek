@@ -11,7 +11,7 @@ export class CardPreview extends Card<ICard> {
   private buttonElement: HTMLButtonElement;
 
   constructor(container: HTMLElement, actions?: ICardActions) {
-    super(container, actions);
+    super(container);
 
     this.categoryElement = ensureElement<HTMLElement>('.card__category', container);
     this.imageElement = ensureElement<HTMLImageElement>('.card__image', container);
@@ -19,7 +19,6 @@ export class CardPreview extends Card<ICard> {
     this.buttonElement = ensureElement<HTMLButtonElement>('.card__button', container);
 
     if (actions?.onClick) {
-      this.container.removeEventListener('click', actions.onClick);
       this.buttonElement.addEventListener('click', actions.onClick);
     }
   }
@@ -45,6 +44,12 @@ export class CardPreview extends Card<ICard> {
 
   set buttonText(strText: string) {
     this.buttonElement.textContent = strText;
+  }
+
+  set disabledButton(checkResult: boolean) {
+    if (this.buttonElement) {
+        this.buttonElement.disabled = checkResult;
+    }
   }
 
 }

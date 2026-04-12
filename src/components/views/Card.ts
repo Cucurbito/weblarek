@@ -13,6 +13,7 @@ export interface ICard {
   description?: string;
   buttonText?: string;
   index?: number;
+  disabledButton?: boolean;
 }
 
 export class Card<T> extends Component<T> {

@@ -26,12 +26,7 @@ export class Buyer {
     this.events.emit('buyer:changed', this.getDataBuyer());
   }
 
-  setDataBuyer(dataBuyer: {
-    payment?: TPayment;
-    address?: string;
-    email?: string;
-    phone?: string;
-  }): void {
+  setDataBuyer(dataBuyer: Partial<IBuyer>): void {
     if (dataBuyer.payment !== undefined) {
       this.payment = dataBuyer.payment;
     }
@@ -45,9 +40,7 @@ export class Buyer {
       this.phone = dataBuyer.phone;
     }
     this.events.emit('buyer:changed', this.getDataBuyer());
-    
-    const errors = this.checkDataBuyer(); 
-    this.events.emit('formErrors:changed', errors);
+
   }
 
   checkDataBuyer(): TCheckError {

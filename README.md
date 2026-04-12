@@ -298,6 +298,7 @@ Presenter - презентер содержит основную логику п
 `image(strImageLink: string): void` - сеттер, который устанавливает ссылку на изображение товара в поле imageElement.
 `description(strDescription: string): void` - сеттер, который устанавливает подробное описание товара в поле descriptionElement.
 `buttonText(strText: string)` - меняет текст на кнопке buttonElement. 
+`disabledButton(checkResult: boolean)` - блокирует кнопку, если товар у товара признак "бесценно". 
 
 ### Класс CardBasket
 Класс отвечает за отображение карточки товара в списке товаров добавленных в корзину, которая отображается в отдельном модальном окне. Наследуется от базового класса Card.

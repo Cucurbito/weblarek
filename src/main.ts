@@ -20,7 +20,6 @@ import { Basket } from "./components/views/Basket.ts";
 import { CardBasket } from "./components/views/CardBasket.ts";
 import { FormOrder } from "./components/views/FormOrder.ts";
 import { FormContacts } from "./components/views/FormContacts.ts";
-import { TCheckError } from "./types/index.ts";
 import { Success } from "./components/views/Success.ts";
 import { IOrder, IBuyer } from "./types/index.ts";
 import { CDN_URL } from "./utils/constants.ts";
@@ -51,17 +50,23 @@ events.on("card:select", (product: IProduct) => {
 // открытие превью
 const cardPreviewTemplate = ensureElement<HTMLTemplateElement>("#card-preview");
 const modal = new Modal(ensureElement<HTMLElement>("#modal-container"), events);
+const cardPreview = new CardPreview(cloneTemplate(cardPreviewTemplate), {
+  onClick: () => {
+    const product = productModel.getSelectedProduct();
+    if (product) {
+      events.emit("card:to-basket", product);
+    }
+  },
+});
 
 events.on("preview:changed", (product: IProduct) => {
-  const card = new CardPreview(cloneTemplate(cardPreviewTemplate), {
-    onClick: () => {
-      events.emit("card:to-basket", product);
-      //modal.closeModal();
-      card.buttonText = cartModel.checkProductCartById(product.id)
+  modal.render({
+    content: cardPreview.render({
+      ...product,
+      buttonText: cartModel.checkProductCartById(product.id)
         ? "Удалить из корзины"
-        : "В корзину";
-    },
-    //
+        : "В корзину",
+    }),
   });
 
   let buttonInitialText = cartModel.checkProductCartById(product.id)
@@ -72,20 +77,12 @@ events.on("preview:changed", (product: IProduct) => {
     buttonInitialText = "Не продается";
   }
 
-  const cardElement = card.render({
-    ...product,
-    buttonText: buttonInitialText,
-  });
-
-  if (product.price === null) {
-    const button = cardElement.querySelector(".card__button");
-    if (button instanceof HTMLButtonElement) {
-      button.disabled = true;
-    }
-  }
-
   modal.render({
-    content: cardElement,
+    content: cardPreview.render({
+      ...product,
+      buttonText: buttonInitialText,
+      disabledButton: product.price === null,
+    }),
   });
 
   modal.openModal();
@@ -101,11 +98,7 @@ events.on("card:to-basket", (product: IProduct) => {
   } else {
     cartModel.delProductCart(product);
   }
-  //modal.closeModal();
-});
-
-events.on("cart:changed", () => {
-  header.counter = cartModel.getCountProduct();
+  modal.closeModal();
 });
 
 //открытие и работа с корзиной
@@ -139,6 +132,13 @@ events.on("cart:changed", () => {
     list: items,
     total: cartModel.getTotalPrice(),
   });
+
+  const selectedProduct = productModel.getSelectedProduct();
+  if (selectedProduct) {
+    cardPreview.buttonText = cartModel.checkProductCartById(selectedProduct.id)
+      ? "Удалить из корзины"
+      : "В корзину";
+  }
 });
 
 events.on("card:remove", (product: IProduct) => {
@@ -178,61 +178,12 @@ const contactsForm = new FormContacts(cloneTemplate(contactsTemplate), {
 
 events.on("buyer:changed", (buyer: IBuyer) => {
   orderForm.payment = buyer.payment || "";
-});
+  orderForm.address = buyer.address || "";
 
-events.on("order:open", () => {
-  modal.render({
-    content: orderForm.render({
-      payment: "",
-      address: "",
-      valid: false,
-      errors: [],
-    }),
-  });
-});
+  contactsForm.email = buyer.email || "";
+  contactsForm.phone = buyer.phone || "";
 
-events.on("order:submit", () => {
-  modal.render({
-    content: contactsForm.render({
-      email: "",
-      phone: "",
-      valid: false,
-      errors: [],
-    }),
-  });
-});
-
-events.on("contacts:submit", () => {
-  const orderData: IOrder = {
-    ...buyerModel.getDataBuyer(),
-    items: cartModel.getProductCart().map((item) => item.id),
-    total: cartModel.getTotalPrice(),
-  };
-
-  webApi
-    .orderProduct(orderData)
-    .then((result) => {
-      const success = new Success(cloneTemplate(successTemplate), {
-        onClick: () => {
-          modal.closeModal();
-          cartModel.clearCart();
-          buyerModel.clearDataBuyer();
-        },
-      });
-
-      modal.render({
-        content: success.render({
-          totalPrice: result.total,
-        }),
-      });
-    })
-    .catch((err) => {
-      console.error("Ошибка оформления заказа:", err);
-    });
-});
-
-// ошибки на формах
-events.on("formErrors:changed", (errors: TCheckError) => {
+  const errors = buyerModel.checkDataBuyer();
   const { payment, address, email, phone } = errors;
 
   orderForm.valid = !payment && !address;
@@ -246,6 +197,48 @@ events.on("formErrors:changed", (errors: TCheckError) => {
   if (email) contactsErrors.push(email);
   if (phone) contactsErrors.push(phone);
   contactsForm.errors = contactsErrors;
+});
+
+events.on("order:open", () => {
+  modal.render({
+    content: orderForm.render(),
+  });
+});
+
+events.on("order:submit", () => {
+  modal.render({
+    content: contactsForm.render(),
+  });
+});
+
+const success = new Success(cloneTemplate(successTemplate), {
+  onClick: () => {
+    modal.closeModal();
+  },
+});
+
+events.on("contacts:submit", () => {
+  const orderData: IOrder = {
+    ...buyerModel.getDataBuyer(),
+    items: cartModel.getProductCart().map((item) => item.id),
+    total: cartModel.getTotalPrice(),
+  };
+
+  webApi
+    .orderProduct(orderData)
+    .then((result) => {
+      cartModel.clearCart();
+      buyerModel.clearDataBuyer();
+
+      modal.render({
+        content: success.render({
+          totalPrice: result.total,
+        }),
+      });
+    })
+    .catch((err) => {
+      console.error("Ошибка оформления заказа:", err);
+    });
 });
 
 // закрытие окна по "крестику"

@@ -11,11 +11,7 @@ export class Cart {
   }
 
   setProductCart(product: IProduct): void {
-    if (this.productCart) {
-      this.productCart.push(product);
-    } else {
-      this.productCart = [product];
-    }
+    this.productCart.push(product);
     this.events.emit('cart:changed', this.productCart);
   }
 
